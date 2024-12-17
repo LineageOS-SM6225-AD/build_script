@@ -63,16 +63,13 @@ while true; do
         -c|--clean|c|clean) FLAG_CLEAN_BUILD=y;;
         -i|--installclean|i|installclean) FLAG_INSTALLCLEAN_BUILD=y;;
         -r|--repo-sync|r|repo-sync) FLAG_SYNC=y;;
-        -v|--variant|v|variant) AOSPA_VARIANT="$2"; shift;;
         -t|--build-type|t|build-type) BUILD_TYPE="$2"; shift;;
         -j|--jobs|j|jobs) JOBS="$2"; shift;;
         -m|--module|m|module) MODULES+=("$2"); echo $2; shift;;
         -s|--sign-keys|s|sign-keys) KEY_MAPPINGS="$2"; shift;;
         -p|--pwfile|p|pwfile) PWFILE="$2"; shift;;
-        -b|--backup-unsigned|b|backup-unsigned) FLAG_BACKUP_UNSIGNED=y;;
-        -d|--delta|d|delta) DELTA_TARGET_FILES="$2"; shift;;
+        -b|--backup-unsigned|b|backup-unsigned) FLAG_BACKUP_UNSIGNED=y;;@
         -z|--imgzip|img|imgzip) FLAG_IMG_ZIP=y;;
-        -n|--version|n|version) AOSPA_USER_VERSION="$2"; shift;;
         --) shift; break;;
     esac
     shift
@@ -97,35 +94,9 @@ cd $(dirname $0)
 DIR_ROOT=$(pwd)
 
 # Make sure everything looks sane so far
-if [ ! -d "$DIR_ROOT/vendor/aospa" ]; then
+if [ ! -d "$DIR_ROOT/vendor/lineage" ]; then
         echo -e "${CLR_BLD_RED}error: insane root directory ($DIR_ROOT)${CLR_RST}"
         exit 1
-fi
-
-# Setup AOSPA variant if specified
-if [ $AOSPA_VARIANT ]; then
-    AOSPA_VARIANT=`echo $AOSPA_VARIANT |  tr "[:upper:]" "[:lower:]"`
-    if [ "${AOSPA_VARIANT}" = "stable" ]; then
-        export AOSPA_BUILDTYPE=STABLE
-    elif [ "${AOSPA_VARIANT}" = "beta" ]; then
-        export AOSPA_BUILDTYPE=BETA
-    elif [ "${AOSPA_VARIANT}" = "alpha" ]; then
-        export AOSPA_BUILDTYPE=ALPHA
-    else
-        echo -e "${CLR_BLD_RED} Unknown AOSPA variant - use alpha, beta or stable${CLR_RST}"
-        exit 1
-    fi
-fi
-
-# Setup AOSPA version if specified
-if [ $AOSPA_USER_VERSION ]; then
-    # Check if it is a number
-    if [[ $AOSPA_USER_VERSION =~ ^[0-9]{1,3}(\.[0-9]{1,2})?(\.[0-9]{1,2})?$ ]]; then
-        export AOSPA_BUILDVERSION=$AOSPA_USER_VERSION
-    else
-        echo -e "${CLR_BLD_RED}Invalid AOSPA version - use any non-negative number${CLR_RST}"
-        exit 1
-    fi
 fi
 
 # Initializationizing!
@@ -149,12 +120,6 @@ if [ -z "$JOBS" ]; then
         fi
 fi
 
-# Grab the build version
-AOSPA_DISPLAY_VERSION="$(cat $DIR_ROOT/vendor/aospa/target/product/version.mk | grep 'AOSPA_MAJOR_VERSION := *' | sed 's/.*= //')"
-if [ $AOSPA_BUILDVERSION ]; then
-    AOSPA_DISPLAY_VERSION+="$AOSPA_BUILDVERSION"
-fi
-
 # Prep for a clean build, if requested so
 if [ "$FLAG_CLEAN_BUILD" = 'y' ]; then
         echo -e "${CLR_BLD_BLU}Cleaning output files left from old builds${CLR_RST}"
@@ -173,15 +138,15 @@ fi
 TIME_START=$(date +%s.%N)
 
 # Friendly logging to tell the user everything is working fine is always nice
-echo -e "${CLR_BLD_GRN}Building AOSPA $AOSPA_DISPLAY_VERSION for $DEVICE${CLR_RST}"
+echo -e "${CLR_BLD_GRN}Building LineageOS for $DEVICE${CLR_RST}"
 echo -e "${CLR_GRN}Start time: $(date)${CLR_RST}"
 echo -e ""
 
 # Lunch-time!
 echo -e "${CLR_BLD_BLU}Lunching $DEVICE${CLR_RST} ${CLR_CYA}(Including dependencies sync)${CLR_RST}"
 echo -e ""
-lunch "aospa_$DEVICE-$BUILD_TYPE"
-AOSPA_VERSION="$(get_build_var AOSPA_VERSION)"
+breakfast "lineage_$DEVICE-$RELEASE-$BUILD_TYPE"
+LINEAGE_VERSION="$(get_build_var LINEAGE_VERSION)"
 checkExit
 echo -e ""
 
